@@ -3,7 +3,7 @@ name: MLOps Assignment Workflow
 on:
   push:
     branches:
-      - kernelridge
+      - dev
 
 jobs:
   train-and-test:
