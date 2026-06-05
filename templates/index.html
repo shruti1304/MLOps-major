@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Olivetti AI Face Scanner</title>
+    <style>
+        :root {
+            --bg: #040b1a;
+            --panel: rgba(10, 22, 44, 0.96);
+            --accent: #30d5ff;
+            --accent-alt: #9d6cff;
+            --text: #eef4ff;
+            --muted: #97a9c5;
+            --border: rgba(255, 255, 255, 0.12);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: 'Inter', system-ui, sans-serif;
+            color: var(--text);
+            background: radial-gradient(circle at top left, rgba(48, 213, 255, 0.18), transparent 20%),
+                        radial-gradient(circle at bottom right, rgba(157, 108, 255, 0.16), transparent 22%),
+                        linear-gradient(145deg, #020612 0%, #061028 55%, #0d1939 100%);
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: radial-gradient(rgba(255,255,255,0.14) 1px, transparent 1px);
+            background-size: 98px 98px;
+            opacity: 0.08;
+            pointer-events: none;
+        }
+
+        .page {
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero {
+            display: grid;
+            place-items: center;
+            text-align: center;
+            padding: 4rem 1.5rem 2rem;
+            gap: 1.5rem;
+            position: relative;
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            width: 280px;
+            height: 280px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(48,213,255,0.25), transparent 55%);
+            top: 20%;
+            left: 50%;
+            transform: translateX(-50%);
+            filter: blur(12px);
+            z-index: -1;
+        }
+
+        .hero h1 {
+            font-size: clamp(2.8rem, 5vw, 4.8rem);
+            line-height: 1.02;
+            letter-spacing: 0.08em;
+            max-width: 860px;
+            margin: 0 auto;
+        }
+
+        .hero p {
+            max-width: 680px;
+            margin: 0 auto;
+            color: var(--muted);
+            line-height: 1.8;
+            font-size: 1.05rem;
+        }
+
+        .hero-actions {
+            display: inline-flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .hero-actions a,
+        .hero-actions button {
+            border: none;
+            border-radius: 999px;
+            padding: 1rem 1.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.22s ease, box-shadow 0.22s ease, opacity 0.22s ease;
+        }
+
+        .hero-actions a {
+            display: inline-flex;
+            align-items: center;
+            text-decoration: none;
+            color: #061629;
+            background: linear-gradient(135deg, var(--accent), var(--accent-alt));
+            box-shadow: 0 24px 60px rgba(48, 213, 255, 0.18);
+        }
+
+        .hero-actions button {
+            background: rgba(255,255,255,0.08);
+            color: var(--text);
+        }
+
+        .hero-actions a:hover,
+        .hero-actions button:hover {
+            transform: translateY(-3px);
+            opacity: 0.96;
+        }
+
+        main {
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 0 1.5rem 4rem;
+            display: grid;
+            gap: 2rem;
+        }
+
+        .card {
+            position: relative;
+            border-radius: 32px;
+            padding: 2rem;
+            background: rgba(8, 16, 35, 0.95);
+            border: 1px solid var(--border);
+            box-shadow: 0 40px 120px rgba(0, 0, 0, 0.24);
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            inset: -1px;
+            background: linear-gradient(120deg, rgba(48,213,255,0.15), transparent 30%, rgba(157,108,255,0.14));
+            pointer-events: none;
+            filter: blur(16px);
+        }
+
+        .upload-panel {
+            display: grid;
+            gap: 1.8rem;
+        }
+
+        .section-headline {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            max-width: 760px;
+        }
+
+        .section-headline h2 {
+            font-size: 2rem;
+        }
+
+        .section-headline p {
+            color: var(--muted);
+            line-height: 1.8;
+        }
+
+        .upload-grid {
+            display: grid;
+            grid-template-columns: 1.2fr .8fr;
+            gap: 1.5rem;
+            align-items: start;
+        }
+
+        .panel-block {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 26px;
+            padding: 1.6rem;
+            display: grid;
+            gap: 1.2rem;
+        }
+
+        .upload-label {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            font-weight: 600;
+            color: #d4e6ff;
+        }
+
+        .upload-input {
+            position: relative;
+            display: inline-flex;
+            width: 100%;
+            border-radius: 22px;
+            border: 1px solid rgba(255,255,255,0.16);
+            padding: 1.2rem 1.4rem;
+            background: rgba(255,255,255,0.03);
+            cursor: pointer;
+            transition: border-color 0.2s ease, transform 0.2s ease;
+        }
+
+        .upload-input:hover {
+            border-color: rgba(48,213,255,0.4);
+            transform: translateY(-1px);
+        }
+
+        .upload-input span {
+            color: var(--text);
+            font-weight: 700;
+            pointer-events: none;
+        }
+
+        .upload-input input {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .preview-area {
+            display: grid;
+            gap: 0.85rem;
+            padding: 1.2rem;
+            background: rgba(255,255,255,0.04);
+            border-radius: 22px;
+            border: 1px solid rgba(255,255,255,0.1);
+            min-height: 240px;
+            justify-items: center;
+            text-align: center;
+        }
+
+        .preview-area img {
+            width: 100%;
+            max-width: 100%;
+            max-height: 240px;
+            border-radius: 22px;
+            object-fit: contain;
+            box-shadow: 0 24px 48px rgba(0,0,0,0.2);
+        }
+
+        .preview-area span {
+            color: var(--muted);
+            font-size: 0.98rem;
+        }
+
+        .submit-row {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 999px;
+            padding: 1rem 1.9rem;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .btn-primary {
+            color: #061629;
+            background: linear-gradient(135deg, var(--accent), var(--accent-alt));
+            box-shadow: 0 24px 50px rgba(48,213,255,0.22);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text);
+        }
+
+        .feature-grid {
+            display: grid;
+            gap: 1.2rem;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            margin-top: 1.5rem;
+        }
+
+        .feature-card {
+            position: relative;
+            padding: 1.5rem;
+            border-radius: 26px;
+            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.035);
+            overflow: hidden;
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            inset: -40%;
+            background: radial-gradient(circle, rgba(48,213,255,0.16), transparent 65%);
+            transform: translateX(-30%);
+            pointer-events: none;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 30px 70px rgba(0, 0, 0, 0.18);
+        }
+
+        .feature-card strong {
+            position: relative;
+            z-index: 1;
+            display: block;
+            margin-bottom: 0.85rem;
+            font-size: 1.08rem;
+        }
+
+        .feature-card p {
+            position: relative;
+            z-index: 1;
+            color: var(--muted);
+            line-height: 1.75;
+        }
+
+        .modal {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: rgba(4, 16, 36, 0.86);
+            backdrop-filter: blur(7px);
+            z-index: 50;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            position: relative;
+            width: min(540px, calc(100% - 2rem));
+            padding: 2rem;
+            border-radius: 30px;
+            background: rgba(7, 14, 29, 0.98);
+            border: 1px solid rgba(255,255,255,0.12);
+            box-shadow: 0 40px 100px rgba(0,0,0,0.35);
+            animation: pop 0.24s ease;
+        }
+
+        .modal-content h3 {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+        }
+
+        .modal-content p {
+            color: var(--muted);
+            line-height: 1.8;
+            margin-bottom: 1.8rem;
+        }
+
+        .modal-content .close {
+            position: absolute;
+            right: 1.2rem;
+            top: 1rem;
+            color: #8ca4d5;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        @keyframes pop {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 880px) {
+            .upload-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .hero {
+                padding-top: 3rem;
+            }
+
+            .section-headline h2 {
+                font-size: 1.7rem;
+            }
+
+            .upload-input {
+                padding: 1rem 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <section class="hero">
+            <h1>Olivetti AI Face Scanner</h1>
+            <p>Upload a face image and get a live Decision Tree prediction. This UI is built to feel futuristic, polished, and easy to use.</p>
+            <div class="hero-actions">
+                <a href="#upload-form">Start Prediction</a>
+                <button type="button" onclick="document.getElementById('how-it-works').scrollIntoView({ behavior: 'smooth' })">How it works</button>
+            </div>
+        </section>
+
+        <main>
+            <section class="card upload-panel" id="upload-form">
+                <div class="section-headline">
+                    <h2>Upload your face image</h2>
+                    <p>Select a clear portrait photo, preview it instantly, and send it to the classifier for a fast person ID prediction.</p>
+                </div>
+
+                <form id="predictionForm" action="/predict" method="post" enctype="multipart/form-data">
+                    <div class="upload-grid">
+                        <div class="panel-block">
+                            <div class="upload-label">Select image</div>
+                            <label class="upload-input" for="image">
+                                <span>Click or drag to upload</span>
+                                <input id="image" type="file" name="image" accept="image/*" required>
+                            </label>
+                            <div class="submit-row">
+                                <button class="btn btn-primary" type="submit">Analyze Face</button>
+                            </div>
+                        </div>
+
+                        <div class="panel-block preview-area" aria-live="polite">
+                            <img id="preview" src="" alt="Image preview" hidden>
+                            <span id="previewText">No image selected yet.</span>
+                        </div>
+                    </div>
+                </form>
+            </section>
+
+            <section class="card" id="how-it-works">
+                <div class="section-headline">
+                    <h2>Why Decision Trees?</h2>
+                    <p>Decision Tree classifiers are lightweight, interpretable, and reliable for structured face embeddings. Here’s what makes this demo powerful.</p>
+                </div>
+
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <strong>Instant inference</strong>
+                        <p>Predicts person identity in one pass without heavy model overhead—great for prototype apps and demos.</p>
+                    </div>
+                    <div class="feature-card">
+                        <strong>Easy to explain</strong>
+                        <p>Each output is based on rule splits, so you can inspect and understand the classification path.</p>
+                    </div>
+                    <div class="feature-card">
+                        <strong>Feature-driven</strong>
+                        <p>Works well when image pixels are converted into compact feature vectors before classification.</p>
+                    </div>
+                    <div class="feature-card">
+                        <strong>Ready for expansion</strong>
+                        <p>Add confidence, visual analytics, or compare model versions for an even smarter interface.</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div class="modal" id="resultModal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h3>Prediction Result</h3>
+            <p id="resultText">{{ prediction|default('Awaiting image upload...', true) }}</p>
+            <button class="btn btn-secondary" type="button" onclick="closeModal()">Close</button>
+        </div>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('image');
+        const preview = document.getElementById('preview');
+        const previewText = document.getElementById('previewText');
+        const resultModal = document.getElementById('resultModal');
+        const resultText = document.getElementById('resultText');
+
+        fileInput.addEventListener('change', event => {
+            const file = event.target.files[0];
+            if (!file) {
+                preview.hidden = true;
+                previewText.textContent = 'No image selected yet.';
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = e => {
+                preview.src = e.target.result;
+                preview.hidden = false;
+                previewText.textContent = 'Preview loaded. Press Analyze Face to predict.';
+            };
+            reader.readAsDataURL(file);
+        });
+
+        function showModal(message) {
+            resultText.textContent = message;
+            resultModal.classList.add('show');
+        }
+
+        function closeModal() {
+            resultModal.classList.remove('show');
+        }
+
+        document.addEventListener('keydown', event => {
+            if (event.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        const prediction = `{{ prediction|e | default('', true) }}`;
+        if (prediction.trim()) {
+            showModal(prediction);
+        }
+    </script>
+</body>
+</html>
