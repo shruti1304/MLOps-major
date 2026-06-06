@@ -52,7 +52,7 @@ MLOps-Major/
 ├── templates/
 │   └── index.html
 │
-├── kubernetes/
+├── k8s/
 │   ├── deployment.yaml
 │   └── service.yaml
 │
@@ -66,7 +66,7 @@ MLOps-Major/
 Clone the repository:
 
 ```bash
-git clone <repository-url>
+git clone git@github.com:shruti1304/MLOps-major.git
 cd MLOps-Major
 ```
 
@@ -77,12 +77,6 @@ python -m venv venv
 ```
 
 Activate the environment:
-
-### Windows
-
-```bash
-venv\Scripts\activate
-```
 
 ### Linux / macOS
 
@@ -159,13 +153,13 @@ Workflow file:
 Build the Docker image:
 
 ```bash
-docker build -t mlops-major .
+docker build -t shrutimn/olivetti-face-app:0.1 .
 ```
 
 Run the container:
 
 ```bash
-docker run -p 5000:5000 mlops-major
+docker compose up -d
 ```
 
 ---
