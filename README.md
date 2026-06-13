@@ -52,7 +52,7 @@ MLOps-Major/
 ├── templates/
 │   └── index.html
 │
-├── kubernetes/
+├── k8s/
 │   ├── deployment.yaml
 │   └── service.yaml
 │
